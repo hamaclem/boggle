@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
+  <title></title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      padding-top: 20px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #121212;
+      color: white;
+
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* TIMER */
+    #timer {
+      font-size: 72px;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    /* GAME */
+    #game-container {
+      margin-top: 24px;
+      position: relative;
+      width: 85vmin;
+      height: 85vmin;
+      max-width: 100vw;
+      max-height: 100vw;
+      margin: 0 auto;
+    }
+
+    #grid {
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 2%;
+      width: 100%;
+      height: 100%;
+    }
+
+    .box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: white;
+      border: 2px solid #000;
+      font-weight: bold;
+      border-radius: 18px;
+      text-transform: uppercase;
+      font-size: 7.5vmin;
+      color: black;
+
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* START BUTTON */
+    #btn-start {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: none;
+      padding: 20px 50px;
+      font-size: 34px;
+      cursor: pointer;
+      border-radius: 12px;
+      background-color: white;
+      color: black;
+      touch-action: manipulation;
+    }
+
+    /* THEME BUTTON */
+    #btn-theme {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      border: none;
+      padding: 10px 14px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: white;
+      color: black;
+    }
+
+    /* LIGHT MODE */
+    body.light {
+      background-color: #f5f5f5;
+      color: black;
+    }
+
+    body.light .box {
+      background-color: white;
+      border: 2px solid black;
+      color: black;
+    }
+
+    body.light #btn-start {
+      background-color: black;
+      color: white;
+    }
+
+    body.light #btn-theme {
+      background: black;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<button id="btn-theme" onclick="toggleTheme()">☀/🌙</button>
+
+<div id="game-container">
+  <div id="grid"></div>
+  <button id="btn-start" onclick="startGame()">Boggle</button>
+</div>
+
+<div id="timer"></div>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+
+const dice = [
+  "lewriu","bmjqao","efihse","lgnyue",
+  "iasorm","afxroi","atirlb","ginetv",
+  "sotend","apecdm","dznvea","enirhs",
+  "eralsc","itaeoa","tukoen","tesulp"
+];
+
+const grid = document.getElementById("grid");
+const timerDisplay = document.getElementById("timer");
+const button = document.getElementById("btn-start");
+
+let countdownInterval;
+let boxesCreated = false;
+
+/* FULLSCREEN */
+function enterFullscreen() {
+  const elem = document.documentElement;
+
+  const request =
+    elem.requestFullscreen ||
+    elem.webkitRequestFullscreen ||
+    elem.msRequestFullscreen;
+
+  if (request) {
+    request.call(elem).catch?.(() => {});
+  }
+}
+
+/* GRID */
+function createGrid() {
+  if (boxesCreated) return;
+
+  for (let i = 0; i < 16; i++) {
+    const div = document.createElement("div");
+    div.className = "box";
+    div.id = "box-" + i;
+    grid.appendChild(div);
+  }
+
+  boxesCreated = true;
+}
+
+/* START */
+function startGame() {
+  enterFullscreen();
+
+  button.style.display = "none";
+  grid.style.display = "grid";
+
+  createGrid();
+
+  rollDice();
+  startTimer(180);
+}
+
+/* DICE */
+function rollDice() {
+  const shuffledDice = [...dice].sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < 16; i++) {
+    const die = shuffledDice[i];
+    const letter = die[Math.floor(Math.random() * die.length)];
+    document.getElementById("box-" + i).innerText = letter.toUpperCase();
+  }
+}
+
+/* TIMER */
+function startTimer(seconds) {
+  let timeLeft = seconds;
+  updateTimer(timeLeft);
+
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer(timeLeft);
+
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      resetGame(); // kein "time's up"
+    }
+  }, 1000);
+}
+
+function updateTimer(sec) {
+  const min = Math.floor(sec / 60);
+  const s = sec % 60;
+  timerDisplay.innerText = `${min}:${s.toString().padStart(2, "0")}`;
+}
+
+/* RESET */
+function resetGame() {
+  timerDisplay.innerText = "";
+  button.style.display = "block";
+
+  grid.innerHTML = "";
+  boxesCreated = false;
+
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  }
+}
+
+/* THEME */
+function toggleTheme() {
+  document.body.classList.toggle("light");
+}
+</script>
+
+</body>
+</html>
