@@ -19,10 +19,14 @@
     }
 
     body {
+      --timer-space: 110px;
       position: relative;
       box-sizing: border-box;
       min-height: 100dvh;
-      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+      padding:
+        max(18px, env(safe-area-inset-top))
+        16px
+        calc(var(--timer-space) + max(18px, env(safe-area-inset-bottom)));
       background: #d9d9d9;
       color: #111;
       font-family: Arial, sans-serif;
@@ -35,7 +39,7 @@
 
     #game {
       position: absolute;
-      top: 50%;
+      top: calc((100dvh - var(--timer-space)) / 2);
       left: 50%;
       transform: translate(-50%, -50%);
       display: grid;
@@ -73,14 +77,21 @@
 
     #start {
       position: absolute;
-      border: 0;
-      border-radius: 12px;
-      padding: 18px 46px;
-      background: #111;
-      color: #fff;
+      inset: 0;
+      margin: auto;
+      width: fit-content;
+      height: fit-content;
+      border: 2px solid #111;
+      border-radius: 18px;
+      padding: 18px 34px;
+      background: #fff;
+      color: #111;
       font: inherit;
-      font-size: 34px;
+      font-size: clamp(2.2rem, 7vmin, 3.4rem);
+      font-weight: 700;
+      text-transform: uppercase;
       cursor: pointer;
+      z-index: 1;
     }
 
     #start.hidden {
@@ -103,7 +114,11 @@
 
     @media (max-width: 600px) {
       body {
-        padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+        --timer-space: 92px;
+        padding:
+          max(14px, env(safe-area-inset-top))
+          12px
+          calc(var(--timer-space) + max(14px, env(safe-area-inset-bottom)));
       }
 
       #game {
@@ -161,6 +176,23 @@
     let countdownInterval = 0;
     let wakeLock = null;
 
+    const isDesktop = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    const enterFullscreen = async () => {
+      if (!isDesktop()) return;
+
+      const request =
+        document.documentElement.requestFullscreen ||
+        document.documentElement.webkitRequestFullscreen ||
+        document.documentElement.msRequestFullscreen;
+
+      if (!request) return;
+
+      try {
+        await request.call(document.documentElement);
+      } catch (_) {}
+    };
+
     const shuffle = (items) => {
       const copy = [...items];
       for (let i = copy.length - 1; i > 0; i--) {
@@ -216,6 +248,7 @@
       grid.classList.add("active");
       rollDice();
       updateTimer(timeLeft);
+      await enterFullscreen();
       await requestWakeLock();
       clearInterval(countdownInterval);
       clearTimeout(gameTimeout);
