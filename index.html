@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#121212">
-  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Boggle">
+  <title>Boggle</title>
 
   <style>
     html, body {
@@ -14,7 +18,6 @@
     }
 
     body {
-      padding-top: 20px;
       font-family: Arial, sans-serif;
       text-align: center;
       background-color: #121212;
@@ -24,25 +27,50 @@
       -webkit-user-select: none;
       user-select: none;
       touch-action: manipulation;
+
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100dvh;
+      min-height: -webkit-fill-available;
+    }
+
+    /* LIGHT MODE */
+    body.light {
+      background-color: #f5f5f5;
+      color: black;
+    }
+
+    /* PAGE LAYOUT */
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      box-sizing: border-box;
+      padding:
+        max(18px, env(safe-area-inset-top))
+        16px
+        max(18px, env(safe-area-inset-bottom));
     }
 
     /* TIMER */
     #timer {
       font-size: 72px;
       font-weight: bold;
-      margin-top: 20px;
-      margin-bottom: 10px;
+      text-align: center;
+      min-height: 84px;
     }
 
-    /* GAME */
+    /* GAME AREA */
     #game-container {
-      margin-top: 24px;
       position: relative;
-      width: 85vmin;
-      height: 85vmin;
-      max-width: 100vw;
-      max-height: 100vw;
+      width: min(82vmin, 92vw);
+      height: min(82vmin, 92vw);
       margin: 0 auto;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #grid {
@@ -54,56 +82,162 @@
       height: 100%;
     }
 
+    /* ensures grid actually becomes grid */
+    #grid.active {
+      display: grid;
+    }
+
     .box {
       display: flex;
       justify-content: center;
       align-items: center;
+
       background-color: white;
       border: 2px solid #000;
-      font-weight: bold;
       border-radius: 18px;
+
+      font-weight: bold;
+      font-size: 8vmin;
       text-transform: uppercase;
-      font-size: 7.5vmin;
       color: black;
 
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+
+      transition: transform 0.08s ease;
+    }
+
+    .box:active {
+      transform: scale(0.95);
     }
 
     /* START BUTTON */
     #btn-start {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      inset: 0;
+      margin: auto;
+
+      width: fit-content;
+      height: fit-content;
+
       border: none;
-      padding: 20px 50px;
+      padding: 18px 46px;
       font-size: 34px;
-      cursor: pointer;
       border-radius: 12px;
+      cursor: pointer;
+
       background-color: white;
       color: black;
+
       touch-action: manipulation;
+      transition: opacity 0.2s ease;
+    }
+
+    #btn-start.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
 
     /* THEME BUTTON */
     #btn-theme {
-      position: absolute;
-      top: 15px;
-      right: 15px;
+      position: fixed;
+      top: 14px;
+      right: 14px;
+
       border: none;
-      padding: 10px 14px;
+      padding: 10px 12px;
       font-size: 18px;
       border-radius: 10px;
+
       cursor: pointer;
       background: white;
       color: black;
     }
 
-    /* LIGHT MODE */
-    body.light {
-      background-color: #f5f5f5;
+    #btn-fullscreen {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+
+      border: none;
+      padding: 10px 12px;
+      font-size: 18px;
+      border-radius: 10px;
+
+      cursor: pointer;
+      background: white;
+      color: black;
+      z-index: 10;
+    }
+
+    #btn-fullscreen.hidden {
+      display: none;
+    }
+
+    #fullscreen-hint {
+      position: fixed;
+      top: 62px;
+      left: 14px;
+      max-width: min(260px, calc(100vw - 28px));
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.82);
+      color: white;
+      font-size: 14px;
+      line-height: 1.3;
+      text-align: left;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 10;
+    }
+
+    #fullscreen-hint.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #shake-hint {
+      position: fixed;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: min(320px, calc(100vw - 28px));
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.75);
+      color: white;
+      font-size: 14px;
+      line-height: 1.3;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 10;
+    }
+
+    #shake-hint.visible {
+      opacity: 1;
+    }
+
+    body.light #btn-theme {
+      background: black;
+      color: white;
+    }
+
+    body.light #btn-fullscreen {
+      background: black;
+      color: white;
+    }
+
+    body.light #fullscreen-hint {
+      background: rgba(255, 255, 255, 0.95);
+      color: black;
+    }
+
+    body.light #shake-hint {
+      background: rgba(255, 255, 255, 0.95);
       color: black;
     }
 
@@ -118,15 +252,34 @@
       color: white;
     }
 
-    body.light #btn-theme {
-      background: black;
-      color: white;
+    /* MOBILE TWEAK: keep centered even with browser UI */
+    @media (max-width: 600px) {
+      body {
+        gap: 14px;
+        padding:
+          max(14px, env(safe-area-inset-top))
+          12px
+          max(14px, env(safe-area-inset-bottom));
+      }
+
+      #game-container {
+        width: min(86vmin, 94vw);
+        height: min(86vmin, 94vw);
+      }
+
+      #timer {
+        font-size: clamp(48px, 12vw, 64px);
+        min-height: 64px;
+      }
     }
   </style>
 </head>
 
 <body>
 
+<button id="btn-fullscreen" onclick="enterFullscreen()">⛶</button>
+<div id="fullscreen-hint"></div>
+<div id="shake-hint"></div>
 <button id="btn-theme" onclick="toggleTheme()">☀/🌙</button>
 
 <div id="game-container">
@@ -137,10 +290,12 @@
 <div id="timer"></div>
 
 <script>
+/* SERVICE WORKER */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js");
 }
 
+/* DICE */
 const dice = [
   "lewriu","bmjqao","efihse","lgnyue",
   "iasorm","afxroi","atirlb","ginetv",
@@ -151,11 +306,21 @@ const dice = [
 const grid = document.getElementById("grid");
 const timerDisplay = document.getElementById("timer");
 const button = document.getElementById("btn-start");
+const fullscreenButton = document.getElementById("btn-fullscreen");
+const fullscreenHint = document.getElementById("fullscreen-hint");
+const shakeHint = document.getElementById("shake-hint");
 
 let countdownInterval;
 let boxesCreated = false;
+let gameRunning = false;
+let wakeLock = null;
+let fullscreenHintTimeout;
+let shakeHintTimeout;
+let shakeEnabled = false;
+let lastShakeAt = 0;
+let shakePermissionAttempted = false;
 
-/* FULLSCREEN */
+/* FULLSCREEN (best effort mobile/desktop) */
 function enterFullscreen() {
   const elem = document.documentElement;
 
@@ -164,10 +329,154 @@ function enterFullscreen() {
     elem.webkitRequestFullscreen ||
     elem.msRequestFullscreen;
 
-  if (request) {
-    request.call(elem).catch?.(() => {});
+  if (!request) {
+    showFullscreenHint();
+    return;
+  }
+
+  request.call(elem).catch?.(() => {
+    showFullscreenHint();
+  });
+}
+
+function updateFullscreenButton() {
+  const isFullscreen = !!(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement
+  );
+
+  fullscreenButton.classList.toggle("hidden", isFullscreen);
+}
+
+function showFullscreenHint() {
+  fullscreenHint.textContent = "Dein Browser blockiert Vollbild hier. Auf dem iPhone klappt es meist nur als App vom Home-Bildschirm.";
+  fullscreenHint.classList.add("visible");
+  clearTimeout(fullscreenHintTimeout);
+  fullscreenHintTimeout = setTimeout(() => {
+    fullscreenHint.classList.remove("visible");
+  }, 3200);
+}
+
+function showShakeHint(message) {
+  shakeHint.textContent = message;
+  shakeHint.classList.add("visible");
+  clearTimeout(shakeHintTimeout);
+  shakeHintTimeout = setTimeout(() => {
+    shakeHint.classList.remove("visible");
+  }, 3200);
+}
+
+function isMobileDevice() {
+  return window.matchMedia("(pointer: coarse)").matches;
+}
+
+function handleDeviceMotion(event) {
+  if (!shakeEnabled || gameRunning) return;
+
+  const acc = event.accelerationIncludingGravity;
+  if (!acc) return;
+
+  const x = Math.abs(acc.x || 0);
+  const y = Math.abs(acc.y || 0);
+  const z = Math.abs(acc.z || 0);
+  const movement = x + y + z;
+  const now = Date.now();
+
+  if (movement > 36 && now - lastShakeAt > 1200) {
+    lastShakeAt = now;
+    startGame();
   }
 }
+
+async function enableShakeStart() {
+  if (!isMobileDevice() || shakeEnabled || shakePermissionAttempted || !("DeviceMotionEvent" in window)) return;
+
+  shakePermissionAttempted = true;
+
+  try {
+    if (typeof DeviceMotionEvent.requestPermission === "function") {
+      const permission = await DeviceMotionEvent.requestPermission();
+      if (permission !== "granted") {
+        showShakeHint("Bewegungssensor nicht freigegeben. Du kannst weiter den Boggle-Button nutzen.");
+        return;
+      }
+    }
+
+    window.addEventListener("devicemotion", handleDeviceMotion);
+    shakeEnabled = true;
+    showShakeHint("Du kannst das Spiel jetzt auch durch Schuetteln starten.");
+  } catch (_) {
+    showShakeHint("Schuetteln wird auf diesem Geraet oder Browser nicht unterstuetzt.");
+  }
+}
+
+function setupShakeStart() {
+  if (!isMobileDevice()) return;
+
+  if (!("DeviceMotionEvent" in window)) {
+    showShakeHint("Schuetteln wird auf diesem Geraet oder Browser nicht unterstuetzt.");
+    return;
+  }
+
+  if (typeof DeviceMotionEvent.requestPermission === "function") {
+    showShakeHint("Tippe einmal auf den Bildschirm, um Schuetteln zu aktivieren.");
+
+    const unlockShake = () => {
+      enableShakeStart();
+    };
+
+    document.addEventListener("pointerdown", unlockShake, { once: true });
+    return;
+  }
+
+  enableShakeStart();
+}
+
+/* FISHER-YATES SHUFFLE */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* SCREEN WAKE LOCK */
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator) || wakeLock) return;
+
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => {
+      wakeLock = null;
+    });
+  } catch (_) {
+    wakeLock = null;
+  }
+}
+
+async function releaseWakeLock() {
+  if (!wakeLock) return;
+
+  try {
+    await wakeLock.release();
+  } catch (_) {
+    // Ignore release failures; the browser may have released it already.
+  } finally {
+    wakeLock = null;
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && gameRunning) {
+    requestWakeLock();
+  }
+});
+
+document.addEventListener("fullscreenchange", updateFullscreenButton);
+document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
+document.addEventListener("msfullscreenchange", updateFullscreenButton);
 
 /* GRID */
 function createGrid() {
@@ -185,10 +494,14 @@ function createGrid() {
 
 /* START */
 function startGame() {
-  enterFullscreen();
+  if (gameRunning) return;
+  gameRunning = true;
 
-  button.style.display = "none";
-  grid.style.display = "grid";
+  enterFullscreen();
+  requestWakeLock();
+
+  button.classList.add("hidden");
+  grid.classList.add("active");
 
   createGrid();
 
@@ -198,7 +511,7 @@ function startGame() {
 
 /* DICE */
 function rollDice() {
-  const shuffledDice = [...dice].sort(() => Math.random() - 0.5);
+  const shuffledDice = shuffle([...dice]);
 
   for (let i = 0; i < 16; i++) {
     const die = shuffledDice[i];
@@ -218,7 +531,7 @@ function startTimer(seconds) {
 
     if (timeLeft <= 0) {
       clearInterval(countdownInterval);
-      resetGame(); // kein "time's up"
+      resetGame();
     }
   }, 1000);
 }
@@ -232,10 +545,14 @@ function updateTimer(sec) {
 /* RESET */
 function resetGame() {
   timerDisplay.innerText = "";
-  button.style.display = "block";
+
+  button.classList.remove("hidden");
+  grid.classList.remove("active");
 
   grid.innerHTML = "";
   boxesCreated = false;
+  gameRunning = false;
+  releaseWakeLock();
 
   if (document.fullscreenElement) {
     document.exitFullscreen();
@@ -246,6 +563,9 @@ function resetGame() {
 function toggleTheme() {
   document.body.classList.toggle("light");
 }
+
+updateFullscreenButton();
+setupShakeStart();
 </script>
 
 </body>
