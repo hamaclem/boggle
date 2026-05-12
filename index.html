@@ -23,10 +23,7 @@
       position: relative;
       box-sizing: border-box;
       min-height: 100dvh;
-      padding:
-        max(18px, env(safe-area-inset-top))
-        16px
-        calc(var(--timer-space) + max(18px, env(safe-area-inset-bottom)));
+      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
       background: #d9d9d9;
       color: #111;
       font-family: Arial, sans-serif;
@@ -35,17 +32,25 @@
       -webkit-user-select: none;
       -webkit-touch-callout: none;
       touch-action: manipulation;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #stage {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
     }
 
     #game {
-      position: absolute;
-      top: calc((100dvh - var(--timer-space)) / 2);
-      left: 50%;
-      transform: translate(-50%, -50%);
       display: grid;
       place-items: center;
-      width: min(84vmin, 94vw);
-      height: min(84vmin, 94vw);
+      width: min(84vmin, 94vw, calc(100dvh - 2 * var(--timer-space)));
+      height: min(84vmin, 94vw, calc(100dvh - 2 * var(--timer-space)));
+      position: relative;
+      pointer-events: auto;
     }
 
     #grid {
@@ -100,60 +105,59 @@
 
     #timer {
       position: absolute;
-      left: 50%;
+      left: 0;
+      right: 0;
       bottom: max(18px, env(safe-area-inset-bottom));
-      transform: translateX(-50%);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: clamp(3rem, 8vw, 4.5rem);
       font-weight: 700;
       line-height: 1;
-      width: calc(100vw - 32px);
+      min-height: 88px;
     }
 
     @media (max-width: 600px) {
       body {
         --timer-space: 92px;
-        padding:
-          max(14px, env(safe-area-inset-top))
-          12px
-          calc(var(--timer-space) + max(14px, env(safe-area-inset-bottom)));
+        padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
       }
 
       #game {
-        width: min(88vmin, 94vw);
-        height: min(88vmin, 94vw);
+        width: min(88vmin, 94vw, calc(100dvh - 2 * var(--timer-space)));
+        height: min(88vmin, 94vw, calc(100dvh - 2 * var(--timer-space)));
       }
 
       #timer {
         bottom: max(14px, env(safe-area-inset-bottom));
-        width: calc(100vw - 24px);
+        min-height: 76px;
       }
     }
   </style>
 </head>
 <body>
-  <div id="game">
-    <div id="grid">
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
+  <div id="stage">
+    <div id="game">
+      <div id="grid">
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+      </div>
+      <button id="start" type="button">Boggle</button>
     </div>
-    <button id="start" type="button">Boggle</button>
   </div>
 
   <div id="timer"></div>
