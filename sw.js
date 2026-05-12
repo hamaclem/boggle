@@ -39,7 +39,6 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  // Navigation (index.html) IMMER zuerst aus Cache
   if (request.mode === "navigate") {
     event.respondWith(
       caches.match("./index.html").then((cached) => {
