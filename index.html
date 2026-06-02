@@ -36,14 +36,6 @@
       flex-direction: column;
     }
 
-    body.game-playing {
-      --button-space: 0px;
-    }
-
-    body.game-finished {
-      --button-space: 96px;
-    }
-
     #stage {
       position: absolute;
       inset: 0;
@@ -58,7 +50,7 @@
       align-items: center;
       justify-content: center;
       gap: 18px;
-      width: min(84vmin, 94vw, calc(100dvh - 2 * var(--timer-space) - var(--button-space, 0px)));
+      width: min(84vmin, 94vw, calc(100dvh - 2 * var(--timer-space)));
       height: auto;
       position: relative;
       pointer-events: auto;
@@ -67,6 +59,24 @@
     #board {
       position: relative;
       width: 100%;
+    }
+
+    #timer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(3rem, 8vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1;
+      min-height: 88px;
+    }
+
+    #timerText {
+      display: block;
     }
 
     #grid {
@@ -120,32 +130,11 @@
     }
 
     body.game-finished #start {
-      position: static;
-      inset: auto;
-      transform: none;
-      margin-top: 18px;
       display: inline-flex;
-    }
-
-    body.game-finished #board {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-
-    #timer {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: max(18px, env(safe-area-inset-bottom));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(3rem, 8vw, 4.5rem);
-      font-weight: 700;
-      line-height: 1;
-      min-height: 88px;
+      padding: 14px 24px;
+      font-size: clamp(1.8rem, 5.5vmin, 2.6rem);
+      position: static;
+      transform: none;
     }
 
     @media (max-width: 600px) {
@@ -155,12 +144,17 @@
       }
 
       #game {
-        width: min(88vmin, 94vw, calc(100dvh - 2 * var(--timer-space) - var(--button-space, 0px)));
+        width: min(88vmin, 94vw, calc(100dvh - 2 * var(--timer-space)));
       }
 
       #timer {
         bottom: max(14px, env(safe-area-inset-bottom));
         min-height: 76px;
+      }
+
+      body.game-finished #start {
+        padding: 12px 20px;
+        font-size: clamp(1.5rem, 5vmin, 2.2rem);
       }
     }
   </style>
@@ -192,7 +186,7 @@
     </div>
   </div>
 
-  <div id="timer"></div>
+  <div id="timer"><span id="timerText"></span></div>
 
   <script>
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
@@ -206,8 +200,10 @@
 
     const grid = document.getElementById("grid");
     const boxes = [...grid.children];
+    const board = document.getElementById("board");
     const start = document.getElementById("start");
     const timer = document.getElementById("timer");
+    const timerText = document.getElementById("timerText");
     let gameTimeout = 0;
     let countdownInterval = 0;
     let wakeLock = null;
@@ -266,7 +262,7 @@
     const updateTimer = (seconds) => {
       const minutes = Math.floor(seconds / 60);
       const rest = seconds % 60;
-      timer.textContent = `${minutes}:${String(rest).padStart(2, "0")}`;
+      timerText.textContent = `${minutes}:${String(rest).padStart(2, "0")}`;
     };
 
     const finishGame = async () => {
@@ -274,10 +270,11 @@
 
       clearTimeout(gameTimeout);
       clearInterval(countdownInterval);
-      timer.textContent = "";
+      timerText.textContent = "";
       gameState = "finished";
       document.body.classList.remove("game-playing");
       document.body.classList.add("game-finished");
+      timer.appendChild(start);
       start.classList.remove("hidden");
       start.textContent = "Boggle";
       await releaseWakeLock();
@@ -288,6 +285,7 @@
       gameState = "playing";
       let timeLeft = 180;
 
+      board.appendChild(start);
       document.body.classList.remove("game-finished");
       document.body.classList.add("game-playing");
       start.classList.add("hidden");
